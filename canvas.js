@@ -1,9 +1,24 @@
+function rStr(N) {
+  return Array(N+1).join((Math.random().toString(36)+'00000000000000000').slice(2, 18)).slice(0, N);
+}
+
 class Player {
-  constructor(x, y, color) {
-    this.x = x;
-    this.y = y;
+  constructor(id, color) {
+    if (id === null) this.id = rStr(8);
+    else this.id = id;
     this.color = color;
   }
+  setPosition({x, y}) {
+    this.x = x;
+    this.y = y;
+  }
+  getPosition() {
+    return {
+      x: this.x,
+      y: this.y
+    }
+  }
+  getColor() { return this.color; }
 }
 
 class Game {
@@ -11,6 +26,7 @@ class Game {
     this.canvas = canvas;
     this.ctx = this.canvas.getContext('2d');
     this.divisions = 20;
+    this.unit = 1/this.divisions;
     this.rcanvas = {
       x: 0,
       y: 0,
@@ -18,6 +34,10 @@ class Game {
       height: 0
     };
     this.players = []; // array of players
+    // create player 1
+    const myPlayer = new Player(null, 'rgb(255,0,0)');
+    myPlayer.setPosition({x : 1, y: 1});
+    this.registerPlayer(myPlayer);
     this.onResize(); // resize canvas
   }
   toRealX(x) {
@@ -84,7 +104,13 @@ class Game {
   }
   drawPlayers() {
     this.players.forEach((p) => {
-      
+      const pos = p.getPosition(); // 0 <= pos.x, pos.y < divisions
+      const color = p.getColor();
+      // draw a player
+      this.ctx.beginPath();
+      this.ctx.fillStyle = color;
+      this.rect(pos.x*this.unit, pos.y*this.unit, this.unit, this.unit);
+      this.ctx.fill();
     });
   }
   onResize() {
@@ -97,6 +123,10 @@ class Game {
   registerPlayer(p) { // p is a Player
     this.players.push(p);
   }
+  onKeyDown(event) {
+    const keyPressed = String.fromCharCode(event.keyCode);
+  	console.log('Pressed', keyPressed, event.keyCode);
+  }
 }
 
 window.onload = function() {
@@ -104,6 +134,7 @@ window.onload = function() {
     const game = new Game(canvas);
     // resize the canvas to fill browser window dynamically
     window.addEventListener('resize', game.onResize.bind(game), false);
+    document.addEventListener('keydown', game.onKeyDown.bind(game), false);
     function drawStuff() {
       // do your drawing stuff here
     }
